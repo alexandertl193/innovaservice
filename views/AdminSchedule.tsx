@@ -178,7 +178,7 @@ export const AdminSchedule: React.FC = () => {
 
       {/* Vista de Semana - Grid */}
       {viewMode === 'week' && (
-        <div className="grid grid-cols-7 gap-2 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 mb-6">
           {weekDates.map(date => {
             const dayCases = groupedCases.find(g => g.date === date)?.cases || [];
             const isToday = date === today;

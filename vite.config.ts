@@ -4,8 +4,12 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
+    // Para GitHub Pages, usar base relativo si está en Actions, sino usar '/'
+    const base = process.env.GITHUB_ACTIONS 
+      ? (process.env.GITHUB_REPOSITORY ? `/${process.env.GITHUB_REPOSITORY.split('/')[1]}/` : '/')
+      : '/';
     return {
-      base: process.env.GITHUB_ACTIONS ? `/${process.env.GITHUB_REPOSITORY?.split('/')[1] || 'innova'}/` : '/',
+      base,
       server: {
         port: 3000,
         host: '0.0.0.0',

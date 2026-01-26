@@ -6,6 +6,7 @@ import { ClientWizard } from './views/ClientWizard';
 import { AdminDashboard } from './views/AdminDashboard';
 import { AdminCaseList, AdminCaseDetail } from './views/AdminCases';
 import { AdminSchedule } from './views/AdminSchedule';
+import { AdminNotifications } from './views/AdminNotifications';
 
 // Layout Wrappers
 const ClientRoot = () => (
@@ -38,6 +39,7 @@ const App: React.FC = () => {
           <Route path="cases" element={<AdminCaseList />} />
           <Route path="cases/:id" element={<AdminCaseDetail />} />
           <Route path="schedule" element={<AdminSchedule />} />
+          <Route path="notifications" element={<AdminNotifications />} />
           <Route path="settings" element={<div className="p-8">Configuración en construcción...</div>} />
         </Route>
 

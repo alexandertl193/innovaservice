@@ -70,7 +70,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
 
           <div className="mt-8 space-y-1">
             <p className="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Sistema</p>
-            <AdminSidebarItem to="/admin/notifications" icon={<Bell size={18} />} label="Notificaciones" />
+            <AdminSidebarItem to="/admin/notifications" icon={<Bell size={18} />} label="Notificaciones" active={location.pathname === '/admin/notifications'} />
             <AdminSidebarItem to="/admin/settings" icon={<Settings size={18} />} label="Configuración" />
           </div>
         </div>

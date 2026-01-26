@@ -26,6 +26,7 @@ export interface ProductData {
   category: string;
   brand: string;
   model: string;
+  typology?: string; // Tipología del producto
   serialNumber?: string;
   purchaseDate?: string;
 }
@@ -58,6 +59,14 @@ export interface Case {
   updatedAt: string;
   history: CaseHistory[];
   npsScore?: number;
+  internalNotes?: InternalNote[];
+}
+
+export interface InternalNote {
+  id: string;
+  date: string;
+  content: string;
+  user: string;
 }
 
 export interface CaseHistory {
@@ -70,10 +79,12 @@ export interface CaseHistory {
 export interface DashboardStats {
   totalReclamos: number;
   totalInstalaciones: number;
-  avgResponseTime: number; // hours
+  avgResponseTime: number; // hours (tiempo promedio de programación)
   npsScore: number;
   openCases: number;
   closedCases: number;
+  casesByMonth?: { month: string; reclamos: number; instalaciones: number }[];
+  avgAtencionTime?: number; // hours (tiempo promedio de atención)
 }
 
 // UI Types

@@ -29,6 +29,9 @@ export const ClientWizard: React.FC = () => {
     productCategory: '',
     productBrand: '',
     productModel: '',
+    productTypology: '',
+    productSerialNumber: '',
+    productPurchaseDate: '',
     department: 'Lima',
     province: 'Lima',
     district: '',
@@ -96,6 +99,9 @@ export const ClientWizard: React.FC = () => {
           category: formData.productCategory,
           brand: formData.productBrand,
           model: formData.productModel,
+          typology: formData.productTypology || undefined,
+          serialNumber: formData.productSerialNumber || undefined,
+          purchaseDate: formData.productPurchaseDate || undefined,
         },
         location: {
           department: formData.department,
@@ -124,15 +130,16 @@ export const ClientWizard: React.FC = () => {
       {/* Progress Bar */}
       <div className="mb-8">
         <div className="flex items-center justify-between relative">
-          <div className="absolute left-0 top-1/2 w-full h-1 bg-gray-200 -z-10" />
+          <div className="absolute left-0 top-1/2 w-full h-1 bg-gray-200 -z-10 hidden md:block" />
           {STEPS.map((step) => {
             const active = step.id <= currentStep;
             return (
-              <div key={step.id} className="flex flex-col items-center bg-[#F6F7FB] px-2">
+              <div key={step.id} className="flex flex-col items-center bg-[#F6F7FB] px-1 md:px-2 flex-1">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all ${active ? 'bg-primary text-white ring-4 ring-primary/20' : 'bg-gray-300 text-gray-500'}`}>
                   {active && step.id < currentStep ? <Check size={16} /> : step.id}
                 </div>
-                <span className={`text-xs mt-2 font-medium ${active ? 'text-primary' : 'text-gray-400'}`}>{step.title}</span>
+                <span className={`text-xs mt-2 font-medium hidden md:block ${active ? 'text-primary' : 'text-gray-400'}`}>{step.title}</span>
+                <span className={`text-[10px] mt-1 font-medium md:hidden ${active ? 'text-primary' : 'text-gray-400'}`}>{step.id}</span>
               </div>
             );
           })}
@@ -193,7 +200,10 @@ export const ClientWizard: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Select label="Categoría" options={[{ value: 'Griferia', label: 'Grifería' }, { value: 'Sanitarios', label: 'Sanitarios' }, { value: 'Accesorios', label: 'Accesorios' }]} value={formData.productCategory} onChange={e => updateData({ productCategory: e.target.value })} />
               <Select label="Marca" options={[{ value: 'Vainsa', label: 'Vainsa' }, { value: 'Italgrif', label: 'Italgrif' }]} value={formData.productBrand} onChange={e => updateData({ productBrand: e.target.value })} />
+              <Select label="Tipología" options={[{ value: 'Monocomando', label: 'Monocomando' }, { value: 'Bicomando', label: 'Bicomando' }, { value: 'Ducha', label: 'Ducha' }, { value: 'Lavatorio', label: 'Lavatorio' }, { value: 'Inodoro', label: 'Inodoro' }, { value: 'Otro', label: 'Otro' }]} value={formData.productTypology} onChange={e => updateData({ productTypology: e.target.value })} />
               <Input label="Modelo / Código" className="md:col-span-2" value={formData.productModel} onChange={e => updateData({ productModel: e.target.value })} />
+              <Input label="Número de Serie (Opcional)" value={formData.productSerialNumber || ''} onChange={e => updateData({ productSerialNumber: e.target.value })} />
+              <Input type="date" label="Fecha de Compra (Opcional)" value={formData.productPurchaseDate || ''} onChange={e => updateData({ productPurchaseDate: e.target.value })} />
             </div>
           </div>
         )}

@@ -41,30 +41,62 @@ export const AdminDashboard: React.FC = () => {
     { name: 'Instalaciones', count: stats.totalInstalaciones },
   ];
 
+  // Datos por mes para gráfico
+  const monthlyData = stats.casesByMonth 
+    ? stats.casesByMonth
+        .sort((a, b) => a.month.localeCompare(b.month))
+        .slice(-6) // Últimos 6 meses
+        .map(item => ({
+          month: new Date(item.month + '-01').toLocaleDateString('es-PE', { month: 'short', year: '2-digit' }),
+          Reclamos: item.reclamos,
+          Instalaciones: item.instalaciones,
+        }))
+    : [];
+
   return (
     <div className="space-y-6">
        <h1 className="text-2xl font-bold text-gray-900">Resumen General</h1>
        
-       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <KPICard title="Total Reclamos" value={stats.totalReclamos} icon={<FileText className="text-orange-600" />} color="bg-orange-100" />
           <KPICard title="Total Instalaciones" value={stats.totalInstalaciones} icon={<Users className="text-blue-600" />} color="bg-blue-100" />
           <KPICard title="NPS Promedio" value={stats.npsScore} icon={<CheckCircle className="text-green-600" />} color="bg-green-100" />
-          <KPICard title="Tiempo Prom. Respuesta" value={`${stats.avgResponseTime}h`} icon={<Clock className="text-purple-600" />} color="bg-purple-100" />
+          <KPICard title="Tiempo Prom. Programación" value={`${stats.avgResponseTime}h`} icon={<Clock className="text-purple-600" />} color="bg-purple-100" />
+          {stats.avgAtencionTime && (
+            <KPICard title="Tiempo Prom. Atención" value={`${stats.avgAtencionTime}h`} icon={<Clock className="text-indigo-600" />} color="bg-indigo-100" />
+          )}
        </div>
 
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="p-6 h-[400px]">
-             <h3 className="text-lg font-bold mb-6">Volumen por Tipo de Servicio</h3>
-             <ResponsiveContainer width="100%" height="85%">
-                <BarChart data={barData}>
-                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                   <XAxis dataKey="name" tick={{fill: '#6B7280'}} axisLine={false} />
-                   <YAxis tick={{fill: '#6B7280'}} axisLine={false} />
-                   <Tooltip cursor={{fill: '#F3F4F6'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'}} />
-                   <Bar dataKey="count" fill="#7C3AED" radius={[4, 4, 0, 0]} barSize={60} />
-                </BarChart>
-             </ResponsiveContainer>
-          </Card>
+          {monthlyData.length > 0 ? (
+            <Card className="p-6 h-[400px]">
+               <h3 className="text-lg font-bold mb-6">Casos por Mes (Últimos 6 meses)</h3>
+               <ResponsiveContainer width="100%" height="85%">
+                  <BarChart data={monthlyData}>
+                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                     <XAxis dataKey="month" tick={{fill: '#6B7280', fontSize: 12}} axisLine={false} />
+                     <YAxis tick={{fill: '#6B7280'}} axisLine={false} />
+                     <Tooltip cursor={{fill: '#F3F4F6'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'}} />
+                     <Legend />
+                     <Bar dataKey="Reclamos" fill="#EF4444" radius={[4, 4, 0, 0]} />
+                     <Bar dataKey="Instalaciones" fill="#7C3AED" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+               </ResponsiveContainer>
+            </Card>
+          ) : (
+            <Card className="p-6 h-[400px]">
+               <h3 className="text-lg font-bold mb-6">Volumen por Tipo de Servicio</h3>
+               <ResponsiveContainer width="100%" height="85%">
+                  <BarChart data={barData}>
+                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                     <XAxis dataKey="name" tick={{fill: '#6B7280'}} axisLine={false} />
+                     <YAxis tick={{fill: '#6B7280'}} axisLine={false} />
+                     <Tooltip cursor={{fill: '#F3F4F6'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'}} />
+                     <Bar dataKey="count" fill="#7C3AED" radius={[4, 4, 0, 0]} barSize={60} />
+                  </BarChart>
+               </ResponsiveContainer>
+            </Card>
+          )}
 
           <Card className="p-6 h-[400px]">
              <h3 className="text-lg font-bold mb-6">Estado de Casos</h3>

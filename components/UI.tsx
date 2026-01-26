@@ -18,7 +18,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button: React.FC<ButtonProps> = ({ 
   children, variant = 'primary', isLoading, className = '', ...props 
 }) => {
-  const baseStyle = "h-[44px] px-6 rounded-[10px] font-medium transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed";
+  const baseStyle = "h-[44px] px-6 rounded-[10px] font-medium transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2";
   
   const variants = {
     primary: "bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20",
@@ -31,9 +31,10 @@ export const Button: React.FC<ButtonProps> = ({
     <button 
       className={`${baseStyle} ${variants[variant]} ${className}`} 
       disabled={isLoading || props.disabled}
+      aria-busy={isLoading}
       {...props}
     >
-      {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+      {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />}
       {children}
     </button>
   );
@@ -45,16 +46,26 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string;
 }
 
-export const Input: React.FC<InputProps> = ({ label, error, className = '', ...props }) => (
-  <div className="w-full">
-    {label && <label className="block text-[12px] font-medium text-gray-500 mb-1.5 uppercase tracking-wide">{label}</label>}
-    <input 
-      className={`w-full h-[44px] px-4 rounded-[10px] border bg-white text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none ${error ? 'border-red-300 bg-red-50' : 'border-gray-200'} ${className}`}
-      {...props}
-    />
-    {error && <span className="text-xs text-red-500 mt-1">{error}</span>}
-  </div>
-);
+export const Input: React.FC<InputProps> = ({ label, error, className = '', id, ...props }) => {
+  const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+  return (
+    <div className="w-full">
+      {label && (
+        <label htmlFor={inputId} className="block text-[12px] font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
+          {label}
+        </label>
+      )}
+      <input 
+        id={inputId}
+        className={`w-full h-[44px] px-4 rounded-[10px] border bg-white text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none ${error ? 'border-red-300 bg-red-50' : 'border-gray-200'} ${className}`}
+        aria-invalid={error ? 'true' : undefined}
+        aria-describedby={error ? `${inputId}-error` : undefined}
+        {...props}
+      />
+      {error && <span id={`${inputId}-error`} className="text-xs text-red-500 mt-1" role="alert">{error}</span>}
+    </div>
+  );
+};
 
 // --- Select ---
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
@@ -63,24 +74,34 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   options: { value: string; label: string }[];
 }
 
-export const Select: React.FC<SelectProps> = ({ label, error, options, className = '', ...props }) => (
-  <div className="w-full">
-    {label && <label className="block text-[12px] font-medium text-gray-500 mb-1.5 uppercase tracking-wide">{label}</label>}
-    <div className="relative">
-      <select 
-        className={`w-full h-[44px] px-4 rounded-[10px] border bg-white text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none appearance-none ${error ? 'border-red-300 bg-red-50' : 'border-gray-200'} ${className}`}
-        {...props}
-      >
-        <option value="">Seleccione una opción</option>
-        {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-      </select>
-      <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
-        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+export const Select: React.FC<SelectProps> = ({ label, error, options, className = '', id, ...props }) => {
+  const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
+  return (
+    <div className="w-full">
+      {label && (
+        <label htmlFor={selectId} className="block text-[12px] font-medium text-gray-500 mb-1.5 uppercase tracking-wide">
+          {label}
+        </label>
+      )}
+      <div className="relative">
+        <select 
+          id={selectId}
+          className={`w-full h-[44px] px-4 rounded-[10px] border bg-white text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none appearance-none ${error ? 'border-red-300 bg-red-50' : 'border-gray-200'} ${className}`}
+          aria-invalid={error ? 'true' : undefined}
+          aria-describedby={error ? `${selectId}-error` : undefined}
+          {...props}
+        >
+          <option value="">Seleccione una opción</option>
+          {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+        </select>
+        <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none" aria-hidden="true">
+          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+        </div>
       </div>
+      {error && <span id={`${selectId}-error`} className="text-xs text-red-500 mt-1" role="alert">{error}</span>}
     </div>
-    {error && <span className="text-xs text-red-500 mt-1">{error}</span>}
-  </div>
-);
+  );
+};
 
 // --- Status Badge ---
 export const StatusBadge: React.FC<{ status: CaseStatus }> = ({ status }) => {

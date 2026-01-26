@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Card, Button, Input, StatusBadge, PageLoader } from '../components/UI';
 import { mockApi } from '../services/mockApi';
-import { Case } from '../types';
-import { CheckCircle, Search, ArrowRight, Home } from 'lucide-react';
+import { Case, CaseStatus } from '../types';
+import { CheckCircle, Search, ArrowRight, Home, Star } from 'lucide-react';
 
 // --- Landing Page ---
 export const LandingPage: React.FC = () => {
@@ -83,16 +83,36 @@ export const TrackingPage: React.FC = () => {
   const [result, setResult] = useState<Case | null>(null);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [showNPS, setShowNPS] = useState(false);
+  const [npsScore, setNpsScore] = useState<number | null>(null);
+  const [npsLoading, setNpsLoading] = useState(false);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setSearched(true);
+    setShowNPS(false);
     try {
       const found = await mockApi.getCaseByNumberAndDoc(search.caseNumber, search.docNumber);
       setResult(found);
+      // Mostrar encuesta NPS si el caso está cerrado y no tiene NPS
+      if (found && found.status === CaseStatus.CERRADO && !found.npsScore) {
+        setShowNPS(true);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSubmitNPS = async () => {
+    if (!result || npsScore === null) return;
+    setNpsLoading(true);
+    try {
+      const updated = await mockApi.updateCaseNPS(result.id, npsScore);
+      setResult(updated);
+      setShowNPS(false);
+    } finally {
+      setNpsLoading(false);
     }
   };
 
@@ -131,48 +151,125 @@ export const TrackingPage: React.FC = () => {
       )}
 
       {!loading && result && (
-        <Card className="p-0 overflow-hidden">
-           <div className="bg-primary p-6 text-white flex justify-between items-center">
-              <div>
-                <p className="text-primary-100 text-sm">Caso #{result.caseNumber}</p>
-                <h2 className="text-xl font-bold">{result.type}</h2>
-              </div>
-              <div className="bg-white/20 px-3 py-1 rounded text-sm font-medium backdrop-blur-sm">
-                 {result.status.replace(/_/g, ' ')}
-              </div>
-           </div>
-           
-           <div className="p-6">
-              <div className="mb-6">
-                 <h3 className="font-bold text-gray-900 mb-3 border-b pb-2">Línea de Tiempo</h3>
-                 <div className="space-y-4">
-                    {result.history.map((h, i) => (
-                      <div key={i} className="flex gap-4">
-                         <div className="flex flex-col items-center">
-                            <div className="w-3 h-3 bg-primary rounded-full mt-1.5" />
-                            {i < result.history.length - 1 && <div className="w-0.5 bg-gray-200 flex-1 my-1" />}
-                         </div>
-                         <div className="pb-4">
-                            <p className="text-sm font-medium text-gray-900">{h.action}</p>
-                            <p className="text-xs text-gray-500">{new Date(h.date).toLocaleString()} - {h.user}</p>
-                         </div>
+        <>
+          <Card className="p-0 overflow-hidden">
+             <div className="bg-primary p-6 text-white flex justify-between items-center">
+                <div>
+                  <p className="text-primary-100 text-sm">Caso #{result.caseNumber}</p>
+                  <h2 className="text-xl font-bold">{result.type}</h2>
+                </div>
+                <div className="bg-white/20 px-3 py-1 rounded text-sm font-medium backdrop-blur-sm">
+                   {result.status.replace(/_/g, ' ')}
+                </div>
+             </div>
+             
+             <div className="p-6">
+                <div className="mb-6">
+                   <h3 className="font-bold text-gray-900 mb-3 border-b pb-2">Línea de Tiempo</h3>
+                   <div className="space-y-4">
+                      {result.history.map((h, i) => (
+                        <div key={i} className="flex gap-4">
+                           <div className="flex flex-col items-center">
+                              <div className="w-3 h-3 bg-primary rounded-full mt-1.5" />
+                              {i < result.history.length - 1 && <div className="w-0.5 bg-gray-200 flex-1 my-1" />}
+                           </div>
+                           <div className="pb-4">
+                              <p className="text-sm font-medium text-gray-900">{h.action}</p>
+                              <p className="text-xs text-gray-500">{new Date(h.date).toLocaleString()} - {h.user}</p>
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                   <div>
+                     <span className="text-gray-500 block">Producto</span>
+                     <span className="font-medium">{result.product.brand} - {result.product.model}</span>
+                   </div>
+                   <div>
+                     <span className="text-gray-500 block">Fecha Programada</span>
+                     <span className="font-medium">{result.schedule.date} ({result.schedule.slot})</span>
+                   </div>
+                </div>
+
+                {result.status === CaseStatus.CERRADO && result.npsScore && (
+                  <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm text-green-800 font-medium mb-1">Encuesta NPS completada</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl font-bold text-green-700">{result.npsScore}</span>
+                      <span className="text-sm text-green-600">/ 10</span>
+                      <div className="flex gap-1 ml-2">
+                        {[...Array(10)].map((_, i) => (
+                          <Star 
+                            key={i} 
+                            size={16} 
+                            className={i < result.npsScore ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'} 
+                          />
+                        ))}
                       </div>
-                    ))}
-                 </div>
+                    </div>
+                  </div>
+                )}
+             </div>
+          </Card>
+
+          {showNPS && result.status === CaseStatus.CERRADO && !result.npsScore && (
+            <Card className="p-6 mt-6 border-2 border-primary">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Star className="text-primary" size={32} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">¿Cómo calificarías nuestro servicio?</h3>
+                <p className="text-sm text-gray-600">Tu opinión nos ayuda a mejorar</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                 <div>
-                   <span className="text-gray-500 block">Producto</span>
-                   <span className="font-medium">{result.product.brand} - {result.product.model}</span>
-                 </div>
-                 <div>
-                   <span className="text-gray-500 block">Fecha Programada</span>
-                   <span className="font-medium">{result.schedule.date} ({result.schedule.slot})</span>
-                 </div>
+              <div className="mb-6">
+                <div className="flex justify-center gap-2 mb-4">
+                  {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
+                    <button
+                      key={score}
+                      onClick={() => setNpsScore(score)}
+                      className={`w-12 h-12 rounded-lg border-2 font-bold text-sm transition-all ${
+                        npsScore === score
+                          ? 'bg-primary text-white border-primary scale-110'
+                          : 'bg-white border-gray-300 hover:border-primary hover:bg-primary/5'
+                      }`}
+                    >
+                      {score}
+                    </button>
+                  ))}
+                </div>
+                {npsScore !== null && (
+                  <p className="text-center text-sm text-gray-600">
+                    {npsScore <= 6 ? '😞 Necesitamos mejorar' : npsScore <= 8 ? '😊 Bien' : '😄 Excelente'}
+                  </p>
+                )}
               </div>
-           </div>
-        </Card>
+
+              <div className="flex gap-3">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => {
+                    setShowNPS(false);
+                    setNpsScore(null);
+                  }}
+                >
+                  Omitir
+                </Button>
+                <Button 
+                  className="flex-1"
+                  onClick={handleSubmitNPS}
+                  isLoading={npsLoading}
+                  disabled={npsScore === null}
+                >
+                  Enviar Calificación
+                </Button>
+              </div>
+            </Card>
+          )}
+        </>
       )}
     </div>
   );

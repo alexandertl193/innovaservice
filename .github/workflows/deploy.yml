@@ -33,9 +33,20 @@ jobs:
         run: npm run build
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || '' }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_ACTIONS: 'true'
 
       - name: Configurar Pages
         uses: actions/configure-pages@v4
+
+      - name: Verificar build
+        run: |
+          if [ ! -d "./dist" ]; then
+            echo "Error: El directorio dist no existe"
+            exit 1
+          fi
+          echo "Build exitoso. Archivos generados:"
+          ls -la ./dist | head -20
 
       - name: Subir artefactos
         uses: actions/upload-pages-artifact@v3

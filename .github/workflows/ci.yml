@@ -26,6 +26,9 @@ jobs:
     - name: Instalar dependencias
       run: npm install
 
+    - name: Ejecutar lint
+      run: npm run lint
+
     - name: Construir proyecto
       run: npm run build
       env:

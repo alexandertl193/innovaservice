@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Button, Input, Select, StatusBadge, PageLoader } from '../components/UI';
 import { mockApi } from '../services/mockApi';
 import { Case, CaseStatus } from '../types';
-import { Eye, ArrowLeft, Send, CheckSquare, Truck, Archive } from 'lucide-react';
+import { Eye, ArrowLeft, Send, CheckSquare, Truck, Archive, Calendar } from 'lucide-react';
 
 // --- Case List View ---
 export const AdminCaseList: React.FC = () => {
@@ -102,6 +102,11 @@ export const AdminCaseDetail: React.FC = () => {
   const [caseData, setCaseData] = useState<Case | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [noteText, setNoteText] = useState('');
+  const [noteLoading, setNoteLoading] = useState(false);
+  const [showReschedule, setShowReschedule] = useState(false);
+  const [rescheduleData, setRescheduleData] = useState({ date: '', slot: 'AM' as 'AM' | 'PM' });
+  const [rescheduleLoading, setRescheduleLoading] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -120,6 +125,31 @@ export const AdminCaseDetail: React.FC = () => {
       setCaseData(updated);
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleAddNote = async () => {
+    if (!caseData || !noteText.trim()) return;
+    setNoteLoading(true);
+    try {
+      const updated = await mockApi.addInternalNote(caseData.id, noteText);
+      setCaseData(updated);
+      setNoteText('');
+    } finally {
+      setNoteLoading(false);
+    }
+  };
+
+  const handleReschedule = async () => {
+    if (!caseData || !rescheduleData.date || !rescheduleData.slot) return;
+    setRescheduleLoading(true);
+    try {
+      const updated = await mockApi.updateCaseSchedule(caseData.id, rescheduleData);
+      setCaseData(updated);
+      setShowReschedule(false);
+      setRescheduleData({ date: '', slot: 'AM' });
+    } finally {
+      setRescheduleLoading(false);
     }
   };
 
@@ -173,11 +203,70 @@ export const AdminCaseDetail: React.FC = () => {
                     <p className="text-gray-400 italic mt-1">Ref: {caseData.location.reference}</p>
                   </div>
                   <div>
-                    <div className="bg-purple-50 p-3 rounded-lg text-purple-900 border border-purple-100">
+                    <div className="bg-purple-50 p-3 rounded-lg text-purple-900 border border-purple-100 mb-3">
                       <p className="font-bold">Fecha Solicitada:</p>
                       <p>{caseData.schedule.date}</p>
                       <p>Turno: {caseData.schedule.slot}</p>
                     </div>
+                    {!showReschedule ? (
+                      <Button 
+                        variant="outline" 
+                        className="w-full text-sm h-9"
+                        onClick={() => {
+                          setRescheduleData({ date: caseData.schedule.date, slot: caseData.schedule.slot });
+                          setShowReschedule(true);
+                        }}
+                      >
+                        <Calendar size={14} className="mr-2" /> Reagendar
+                      </Button>
+                    ) : (
+                      <div className="space-y-2">
+                        <Input 
+                          type="date" 
+                          label="Nueva Fecha" 
+                          value={rescheduleData.date}
+                          onChange={e => setRescheduleData(p => ({ ...p, date: e.target.value }))}
+                          min={new Date().toISOString().split('T')[0]}
+                        />
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase">Bloque Horario</label>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => setRescheduleData(p => ({ ...p, slot: 'AM' }))}
+                              className={`flex-1 py-2 rounded-lg border text-xs font-medium ${rescheduleData.slot === 'AM' ? 'bg-primary text-white border-primary' : 'bg-white border-gray-200 hover:bg-gray-50'}`}
+                            >
+                              AM
+                            </button>
+                            <button 
+                              onClick={() => setRescheduleData(p => ({ ...p, slot: 'PM' }))}
+                              className={`flex-1 py-2 rounded-lg border text-xs font-medium ${rescheduleData.slot === 'PM' ? 'bg-primary text-white border-primary' : 'bg-white border-gray-200 hover:bg-gray-50'}`}
+                            >
+                              PM
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="secondary" 
+                            className="flex-1 text-xs h-8"
+                            onClick={() => {
+                              setShowReschedule(false);
+                              setRescheduleData({ date: '', slot: 'AM' });
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                          <Button 
+                            className="flex-1 text-xs h-8"
+                            onClick={handleReschedule}
+                            isLoading={rescheduleLoading}
+                            disabled={!rescheduleData.date}
+                          >
+                            Confirmar
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                </div>
             </Card>
@@ -192,6 +281,17 @@ export const AdminCaseDetail: React.FC = () => {
                        <p className="text-xs text-gray-500">{new Date(h.date).toLocaleString()} por <span className="font-medium">{h.user}</span></p>
                     </div>
                   ))}
+                  {caseData.internalNotes && caseData.internalNotes.length > 0 && (
+                    <>
+                      {caseData.internalNotes.map((note, idx) => (
+                        <div key={note.id || `note-${idx}`} className="relative pl-6">
+                          <div className="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-blue-200 border-2 border-white" />
+                          <p className="text-sm font-medium text-gray-900">Nota interna: {note.content}</p>
+                          <p className="text-xs text-gray-500">{new Date(note.date).toLocaleString()} por <span className="font-medium">{note.user}</span></p>
+                        </div>
+                      ))}
+                    </>
+                  )}
                </div>
             </Card>
          </div>
@@ -247,16 +347,51 @@ export const AdminCaseDetail: React.FC = () => {
                      </Button>
                   )}
                   
-                  <div className="border-t pt-3 mt-3">
-                     <Button variant="danger" className="w-full justify-start text-sm h-10" disabled>Cancelar Solicitud</Button>
-                  </div>
+                  {(caseData.status !== CaseStatus.CERRADO && caseData.status !== CaseStatus.CANCELADO) && (
+                    <div className="border-t pt-3 mt-3">
+                       <Button 
+                         variant="danger" 
+                         className="w-full justify-start text-sm h-10" 
+                         onClick={() => handleStatusChange(CaseStatus.CANCELADO, 'Solicitud cancelada por el administrador')}
+                         isLoading={actionLoading}
+                       >
+                         Cancelar Solicitud
+                       </Button>
+                    </div>
+                  )}
                </div>
             </Card>
             
             <Card className="p-6">
                <h3 className="font-bold text-gray-900 mb-2">Notas Internas</h3>
-               <textarea className="w-full border rounded-lg p-3 text-sm h-24 mb-2" placeholder="Escribir nota..." />
-               <Button variant="secondary" className="w-full h-9 text-xs">Agregar Nota</Button>
+               <textarea 
+                 className="w-full border rounded-lg p-3 text-sm h-24 mb-2" 
+                 placeholder="Escribir nota..." 
+                 value={noteText}
+                 onChange={e => setNoteText(e.target.value)}
+               />
+               <Button 
+                 variant="secondary" 
+                 className="w-full h-9 text-xs" 
+                 onClick={handleAddNote}
+                 isLoading={noteLoading}
+                 disabled={!noteText.trim()}
+               >
+                 Agregar Nota
+               </Button>
+               {caseData.internalNotes && caseData.internalNotes.length > 0 && (
+                 <div className="mt-4 space-y-2 border-t pt-4">
+                   <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Notas Anteriores</h4>
+                   {caseData.internalNotes.map((note, idx) => (
+                     <div key={note.id || idx} className="bg-gray-50 p-3 rounded-lg text-xs">
+                       <p className="text-gray-700 mb-1">{note.content}</p>
+                       <p className="text-gray-400 text-[10px]">
+                         {new Date(note.date).toLocaleString()} - {note.user}
+                       </p>
+                     </div>
+                   ))}
+                 </div>
+               )}
             </Card>
          </div>
        </div>
