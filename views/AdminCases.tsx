@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Button, Input, Select, StatusBadge, PageLoader } from '../components/UI';
 import { mockApi } from '../services/mockApi';
 import { Case, CaseStatus } from '../types';
-import { Eye, ArrowLeft, Send, CheckSquare, Truck, Archive, Calendar } from 'lucide-react';
+import { Eye, ArrowLeft, CheckSquare, Truck, Archive, Calendar } from 'lucide-react';
 
 // --- Case List View ---
 export const AdminCaseList: React.FC = () => {
@@ -21,6 +21,7 @@ export const AdminCaseList: React.FC = () => {
 
   useEffect(() => {
     fetchCases();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

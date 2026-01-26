@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, PageLoader, StatusBadge } from '../components/UI';
-import { Case } from '../types';
+import { Card, PageLoader } from '../components/UI';
 import { mockApi } from '../services/mockApi';
 import { Bell, Mail, MessageSquare, CheckCircle } from 'lucide-react';
 

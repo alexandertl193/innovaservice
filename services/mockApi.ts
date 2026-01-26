@@ -1,4 +1,4 @@
-import { Case, CaseStatus, CaseType, DashboardStats, InternalNote } from '../types';
+import { Case, CaseStatus, CaseType, DashboardStats } from '../types';
 
 // Initial Mock Data
 const MOCK_CASES: Case[] = [
@@ -148,7 +148,7 @@ export const mockApi = {
   },
 
   // Admin Methods
-  getCases: async (filters: any): Promise<Case[]> => {
+  getCases: async (filters: { status?: CaseStatus; search?: string }): Promise<Case[]> => {
     await delay(800);
     let filtered = [...MOCK_CASES];
     if (filters.status) {
@@ -249,7 +249,6 @@ export const mockApi = {
     await delay(1000);
     
     // Calcular casos por mes
-    const now = new Date();
     const casesByMonth = MOCK_CASES.reduce((acc, c) => {
       const caseDate = new Date(c.createdAt);
       const monthKey = `${caseDate.getFullYear()}-${String(caseDate.getMonth() + 1).padStart(2, '0')}`;

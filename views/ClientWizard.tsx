@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Button, Input, Select, MockMap } from '../components/UI';
-import { CaseType, Case } from '../types';
+import { CaseType } from '../types';
 import { mockApi } from '../services/mockApi';
 import { Check, ChevronRight, AlertCircle, Wrench, FileWarning, Calendar } from 'lucide-react';
 
@@ -43,7 +43,7 @@ export const ClientWizard: React.FC = () => {
     scheduleSlot: '',
   });
 
-  const updateData = (data: any) => setFormData(prev => ({ ...prev, ...data }));
+  const updateData = (data: Partial<typeof formData>) => setFormData(prev => ({ ...prev, ...data }));
 
   const validateStep = (step: number) => {
     setError(null);

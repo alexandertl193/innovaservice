@@ -91,6 +91,6 @@ export interface DashboardStats {
 export interface StepProps {
   onNext: () => void;
   onBack: () => void;
-  updateData: (data: Partial<any>) => void;
-  data: any;
+  updateData: (data: Partial<Record<string, unknown>>) => void;
+  data: Record<string, unknown>;
 }

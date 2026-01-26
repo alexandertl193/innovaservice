@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Card, Button, Input, StatusBadge, PageLoader } from '../components/UI';
+import { Link, useLocation } from 'react-router-dom';
+import { Card, Button, Input, PageLoader } from '../components/UI';
 import { mockApi } from '../services/mockApi';
 import { Case, CaseStatus } from '../types';
-import { CheckCircle, Search, ArrowRight, Home, Star } from 'lucide-react';
+import { CheckCircle, Search, ArrowRight, Star } from 'lucide-react';
 
 // --- Landing Page ---
 export const LandingPage: React.FC = () => {
