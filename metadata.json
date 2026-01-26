@@ -1,0 +1,8 @@
+{
+  "name": "Plataforma Innova - Gestión de Reclamos",
+  "description": "Plataforma centralizada para el registro y gestión de reclamos e instalaciones del canal Innova.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
