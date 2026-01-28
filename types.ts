@@ -20,6 +20,7 @@ export interface ClientData {
   docNumber: string;
   email: string;
   phone: string;
+  phone2?: string; // instalación y reclamo
 }
 
 export interface ProductData {
@@ -29,6 +30,14 @@ export interface ProductData {
   typology?: string; // Tipología del producto
   serialNumber?: string;
   purchaseDate?: string;
+  quantityProducts?: number; // instalación / reclamo
+  wherePurchased?: string;   // instalación: ¿Dónde compraste?
+  // Reclamo:
+  faultType?: string;        // Tipo de falla
+  fault?: string;            // Falla
+  recentlyInstalled?: boolean;
+  timeValue?: string;        // XX
+  timeUnit?: string;         // Meses | Años
 }
 
 export interface LocationData {
@@ -44,6 +53,7 @@ export interface LocationData {
 export interface ScheduleData {
   date: string;
   slot: 'AM' | 'PM';
+  endDate?: string; // rango de fechas para flujo instalación
 }
 
 export interface Case {
@@ -60,6 +70,7 @@ export interface Case {
   history: CaseHistory[];
   npsScore?: number;
   internalNotes?: InternalNote[];
+  clientComments?: string; // comentarios del cliente (flujo instalación)
 }
 
 export interface InternalNote {

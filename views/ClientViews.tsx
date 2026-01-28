@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Card, Button, Input, PageLoader } from '../components/UI';
 import { mockApi } from '../services/mockApi';
-import { Case, CaseStatus } from '../types';
+import { Case, CaseStatus, CaseType } from '../types';
 import { CheckCircle, Search, ArrowRight, Star } from 'lucide-react';
 
 // --- Landing Page ---
@@ -41,38 +41,87 @@ export const LandingPage: React.FC = () => {
   );
 };
 
+// Formatear fecha para resumen: d/M/yyyy
+const formatResumenDate = (iso: string) => {
+  const d = new Date(iso + 'T12:00:00');
+  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+};
+
 // --- Success Page ---
 export const SuccessPage: React.FC = () => {
   const location = useLocation();
   const caseData = location.state?.caseData as Case;
+  const HORAS_CONFIRMACION = 24;
 
   if (!caseData) return <div className="p-8 text-center">No hay información de caso.</div>;
 
+  const { client, product, location: loc, schedule, type, clientComments } = caseData;
+  const nombreCompleto = `${client.firstName} ${client.lastName}`.trim();
+  const direccionCompleta = [loc.address, loc.district?.toUpperCase(), loc.province?.toUpperCase(), loc.department?.toUpperCase()]
+    .filter(Boolean)
+    .join(', ');
+  const rangoFechas = schedule.endDate
+    ? `${formatResumenDate(schedule.date)} - ${formatResumenDate(schedule.endDate)}`
+    : `${formatResumenDate(schedule.date)} (${schedule.slot})`;
+
+  // Misma estructura de resumen para Reclamo e Instalación: mismos campos en el mismo orden; se ocultan filas opcionales si no hay dato
   return (
-    <div className="max-w-xl mx-auto py-12">
-       <Card className="p-10 text-center">
-         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 mx-auto mb-6">
-            <CheckCircle size={48} />
-         </div>
-         <h1 className="text-2xl font-bold text-gray-900 mb-2">¡Solicitud Registrada!</h1>
-         <p className="text-gray-600 mb-8">
-           Hemos recibido tu solicitud correctamente. Nuestro equipo validará la información en breve.
-         </p>
+    <div className="max-w-4xl mx-auto py-12 px-4">
+       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+         {/* Columna izquierda: éxito, código y acciones — igual para ambos */}
+         <Card className="p-10 text-center">
+           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 mx-auto mb-6">
+              <CheckCircle size={48} />
+           </div>
+           <h1 className="text-2xl font-bold text-gray-900 mb-2">Registro exitoso</h1>
+           <p className="text-gray-600 mb-6">
+             Hemos recibido tu solicitud correctamente. Nuestro equipo validará la información en breve.
+           </p>
 
-         <div className="bg-gray-50 rounded-xl p-6 mb-8 border border-gray-100">
-            <p className="text-sm text-gray-500 uppercase font-bold mb-1">Código de Seguimiento</p>
-            <p className="text-3xl font-mono font-bold text-primary tracking-wider">{caseData.caseNumber}</p>
-         </div>
+           <div className="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-100">
+              <p className="text-sm text-gray-500 uppercase font-bold mb-1">Código de Seguimiento</p>
+              <p className="text-3xl font-mono font-bold text-primary tracking-wider">{caseData.caseNumber}</p>
+           </div>
 
-         <div className="space-y-3">
-            <Link to="/tracking">
-              <Button className="w-full">Ver Estado de mi Caso</Button>
-            </Link>
-            <Link to="/">
-              <Button variant="secondary" className="w-full">Volver al Inicio</Button>
-            </Link>
+           <div className="space-y-3">
+              <Link to="/tracking">
+                <Button className="w-full">Ver Estado de mi Caso</Button>
+              </Link>
+              <Link to="/">
+                <Button variant="secondary" className="w-full">Volver al Inicio</Button>
+              </Link>
+           </div>
+         </Card>
+
+         {/* Columna derecha: Resumen — misma plantilla para Reclamo e Instalación */}
+         <div className="bg-[#1e3a5f] text-white rounded-[14px] shadow-sm border border-[#E6E8EF] p-6 text-left">
+           <h2 className="text-lg font-bold mb-4">Resumen</h2>
+           <dl className="space-y-3 text-sm">
+             <div><dt className="text-white/80">Nombre completo</dt><dd className="font-medium">{nombreCompleto}</dd></div>
+             <div><dt className="text-white/80">Tipo de documento</dt><dd className="font-medium">{client.docType}</dd></div>
+             <div><dt className="text-white/80">Número del documento</dt><dd className="font-medium">{client.docNumber}</dd></div>
+             <div><dt className="text-white/80">Dirección</dt><dd className="font-medium">{direccionCompleta}</dd></div>
+             {loc.reference ? <div><dt className="text-white/80">Referencia</dt><dd className="font-medium">{loc.reference}</dd></div> : null}
+             <div><dt className="text-white/80">Tipo de servicio</dt><dd className="font-medium">{type === CaseType.INSTALACION ? 'Instalación' : 'Reclamo'}</dd></div>
+             <div><dt className="text-white/80">Categoría de producto</dt><dd className="font-medium text-emerald-300">{product.category}</dd></div>
+             <div><dt className="text-white/80">Marca o marcas</dt><dd className="font-medium text-emerald-300">{product.brand}</dd></div>
+             {product.wherePurchased ? <div><dt className="text-white/80">Tienda donde compró</dt><dd className="font-medium text-emerald-300">{product.wherePurchased}</dd></div> : null}
+             {product.faultType ? <div><dt className="text-white/80">Tipo de falla</dt><dd className="font-medium text-emerald-300">{product.faultType}</dd></div> : null}
+             {product.fault ? <div><dt className="text-white/80">Falla</dt><dd className="font-medium text-emerald-300">{product.fault}</dd></div> : null}
+             {(product.recentlyInstalled !== undefined && product.recentlyInstalled !== null) ? <div><dt className="text-white/80">Recién instalado</dt><dd className="font-medium">{product.recentlyInstalled ? 'Sí' : 'No'}</dd></div> : null}
+             {(product.timeValue || product.timeUnit) ? <div><dt className="text-white/80">Tiempo</dt><dd className="font-medium">{product.timeValue || '—'} {product.timeUnit || ''}</dd></div> : null}
+             <div>
+               <dt className="text-white/80">{schedule.endDate ? 'Rango de fecha seleccionado' : 'Fecha seleccionada'}</dt>
+               <dd className="font-medium">{rangoFechas}</dd>
+             </div>
+             {clientComments ? <div><dt className="text-white/80">Comentarios</dt><dd className="font-medium text-white/95">{clientComments}</dd></div> : null}
+           </dl>
+           <hr className="border-white/20 my-4" />
+           <p className="text-sm text-white/90">
+             Estamos procesando su solicitud, y máximo en <strong className="text-emerald-300">[{HORAS_CONFIRMACION}]</strong> horas le llegará un WhatsApp confirmando la fecha de atención.
+           </p>
          </div>
-       </Card>
+       </div>
     </div>
   );
 };
