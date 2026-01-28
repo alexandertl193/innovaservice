@@ -227,7 +227,7 @@ export const DateRangeCalendar: React.FC<DateRangeCalendarProps> = ({
     const t = d.getTime();
     const s = new Date(startDate + 'T12:00:00').getTime();
     const e = new Date(endDate + 'T12:00:00').getTime();
-    return t >= s && t <= e;
+    return t >= s && t <= e; 
   };
   const isStart = (d: Date) => startDate && toYmd(d) === startDate;
   const isEnd = (d: Date) => endDate && toYmd(d) === endDate;
